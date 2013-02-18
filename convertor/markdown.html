@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Markdown Testing</title>
+
+	<script src="../js/showdown.js" type="text/javascript"></script>
+	<script src="../js/jquery-1.9.1.min.js" type="text/javascript"></script>
+	<script src="tabby.js" type="text/javascript"></script>
+	<script type="text/javascript">
+	$(document).ready(function() {
+		var converter = new Showdown.converter();
+		
+		$('textbox').keyup(function(){ 
+			var text = $("#textbox").val();
+			var htmltext = converter.makeHtml(text);
+			$("#markdown").html(htmltext);
+		});
+		
+		var tabby_opts = {tabString:'    '};
+		$('#textbox').tabby(tabby_opts);
+		
+		$('#save').click(function(){
+			var data = new Object();
+			data.slug = $('#slug').val();
+			data.title=$('#title').val();
+			data.date = $('#date').val();
+			data.md = $('#textbox').val();
+			data.tags = "";
+			$('.tag').each(function(index){
+				data.tags = data.tags + " - " + $(this).val() + "\n";
+			});
+			
+			 
+			$.get('save.php', data, function(response){
+				alert(response);
+				$('#slug').val("");
+				$('#title').val("");
+				$('#date').val("");
+				$('.tag').val("");
+				$('#textbox').val("");
+				$('#markdown').html("");
+			});
+		});
+		
+		$('#conv').click(function(){
+			var text = $('#textbox').val();
+			var data = { md: text };
+			$.get('convertmd', data, function(response){
+				$('#md').html(response);
+			});
+		});
+
+	});
+	</script>
+
+	<link rel="stylesheet" href="../css/reset.css" type="text/css" />
+	<link rel="stylesheet" href="../css/style.css" type="text/css" />
+	<style>
+		div { float: left; margin: 20px 0 0 20px; }
+		#tags { width: 200px; height: 100px; }
+		#textbox { float: left; width: 480px; height: 2000px; margin: 20px; 
+		font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace; }
+		#md { float: left; width: 320px; height: 7000px; margin: 20px; border: 1px solid black; }
+	</style>	
+</head>
+
+
+
+<body>
+<html>
+<div>
+	TITLE: <input type="text" id="title" /><br />
+	SLUG: <input type="text" id="slug" /><br />
+	DATE: <input type="text" id="date" /><br />
+	TAGS:<br />
+	<input type="text" class="tag" /><br />
+	<input type="text" class="tag" /><br />
+	<input type="text" class="tag" /><br />
+	<input type="text" class="tag" /><br />
+	<input id="save" type="submit" value="Save" />
+	<br /><br />
+	
+</div>
+<textarea id="textbox">
+# Header 1
+
+## Header 2
+
+### Header 3
+
+This is a paragraph with **bold** and *italic* text spread throughout it.
+
+This is a horizontal line to separate sections, if you don't have a space after the line above, it will become a header!
+
+---
+
+[This is a link][1] - the reference is separate!
+
+[So is this](http://www.google.com) - the reference is right there!
+
+[1]: http://www.google.com
+
+## Lists
+
+### This is an unordered list:
+
+- apple
+- orange
+- banana
+
+### This is an ordered list:
+
+1. one
+2. two
+3. three
+
+### This is a definition list:
+
+Apple
+: a delicious fruit
+
+Look, another big red header!
+
+# Big Red
+
+Go ahead. Make up whatever you'd like. Hit the convert button, and voila!
+
+
+</textarea>
+<input id="conv" type="submit" value="Convert with Markdown Extra" />
+<div id="md">Push the convert button to see your formatted text over here.</div>
+</html>
+</body>
+
+
+
+ 
