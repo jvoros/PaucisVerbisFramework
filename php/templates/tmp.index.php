@@ -60,7 +60,6 @@ $index = <<<EOF
 
 <!-- LIST CARD -->
 <section id="listcard" class="card slider">
-	<h1></h1>
 	<i class="icon-arrow-left icon-large navbutton" id="backbutton" ></i>
 </section>
 

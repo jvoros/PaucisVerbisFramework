@@ -107,7 +107,21 @@ class CardCatalog {
 	
 	public function outputCards() {
 		foreach ($this->allCards as $card) {
-			$this->htmlOut($card->getSlug(), $card->getHTML(), "<div id='md'><h1>outputCards</h1>", "</div>");
+			$this->htmlOut($card->getSlug(), $card->getHTML(), "<div id='md'>", "</div>");
+		}
+	}
+	
+	public function outputCategories() {
+		foreach ($this->tagMenus as $tag => $cards) {
+			$cardList = "";
+			foreach ($cards as $card) { $cardList .= "<li><p class='title' data-detail='".$card->getSlug()."'>".$card->getTitle()."</p>
+			<span class='date'>".$card->getDate()."</span><span class='tags'>".$tags."</span></li>
+			";
+			}
+			$cat = "<div id='cat-{$tag}'><h1>{$tag}</h1><input class ='search' /><i class='icon-search icon-large'></i><ul class='list navlist'>
+				{$cardList}
+				</ul></div>";
+			$this->htmlOut("cat-".$tag, $cat);		
 		}
 	}
 	
@@ -163,6 +177,7 @@ function tagTemplate($menus) {}
 
 $catalog = new CardCatalog();
 $catalog->outputCards();
+$catalog->outputCategories();
 $catalog->outputIndex();
 
 
