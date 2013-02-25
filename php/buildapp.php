@@ -19,6 +19,9 @@ function echo_array($input, $name = null) {
 // uses Spyc and Markdown libraries, tightly coupled
 // consider updating to use dependency injection 
 
+
+	
+
 class Card {
 	
 	private $header;
@@ -60,6 +63,7 @@ class CardCatalog {
 	// constants for file paths
 	private $input_dir = "../md/"; // dependency
 	private $output_dir = "../paucisverbis/"; //dependency
+	private $temp_dir = "templates/"; //dependency
 	
 	// arrays that make up site pieces aka the decks
 	private $allCards;
@@ -68,8 +72,10 @@ class CardCatalog {
 	
 	public function __construct() { $this->buildDecks(); }
 	
+	// BUILD THE DECKS //
+	
 	// opens the file, splits up the header and the markdown and makes a Card
-	private function splitMD($filename) {
+	private function makeCard($filename) {
 		$openpath = $this->input_dir . $filename;
 		$file = explode("+++++", file_get_contents($openpath));
 		
@@ -85,65 +91,59 @@ class CardCatalog {
 		$scan_dir = preg_grep("/\w+\.md/i",scandir($this->input_dir));
 		
 		foreach ($scan_dir as $filename) {
-			$card = $this->splitMD($filename);
+			$card = $this->makeCard($filename);
+			
 			// add to appropriate arrays aka decks 
 			$this->allCards[] = $card;
-			// add tags from each ard to tagMenu, adds to existing tag array if exists, otherwise makes a new one
+			// add tags from each card to tagMenu, adds to existing tag array if exists, otherwise makes a new one
 			foreach($card->getTags() as $tag) { $this->tagMenus[$tag][] = $card; }
 		}
 		
 		// build the tag cloud once all the files are processed	
 		foreach($this->tagMenus as $k => $v) { $this->tagCloud[] = $k; }
-		
 	}
 	
-	// save the html
-	private function htmlOut($slug, $html, $pre = null, $post = null) {
+	// BUILD THE STATIC HTML
+	
+	// generic function to save the html pages
+	private function htmlOut($slug, $html) {
 		$savepath = $this->output_dir . $slug . ".html";
 		$handle = fopen($savepath, 'w');
-		fwrite($handle, $pre . $html . $post);
+		fwrite($handle, $html);
 		fclose($handle);
 	}
 	
+	// requires a template file and an array of the form array('var1' => 'value1', 'var2' => 'value2')
+	public function buildTemp($tmp, array $data) {
+		ob_start();
+		extract($data);
+		include($this->temp_dir.$tmp);
+		return ob_get_clean();
+	}
+	
+	// function that builds and saves the card html files based on the card template
 	public function outputCards() {
 		foreach ($this->allCards as $card) {
-			$this->htmlOut($card->getSlug(), $card->getHTML(), "<div id='md'>", "</div>");
+			$html = $card->getHTML();
+			$tmp = $this->buildTemp('tmp.card.php', array('html' => $html));
+			$this->htmlOut($card->getSlug(), $tmp);
 		}
 	}
 	
+	// function that builds and saves html for each category list
 	public function outputCategories() {
 		foreach ($this->tagMenus as $tag => $cards) {
-			$cardList = "";
-			foreach ($cards as $card) { $cardList .= "<li><p class='title' data-detail='".$card->getSlug()."'>".$card->getTitle()."</p>
-			<span class='date'>".$card->getDate()."</span><span class='tags'>".$tags."</span></li>
-			";
-			}
-			$cat = "<div id='cat-{$tag}'><h1>{$tag}</h1><input class ='search' /><i class='icon-search icon-large'></i><ul class='list navlist'>
-				{$cardList}
-				</ul></div>";
+			$cardList = $this->buildTemp('tmp.cardlist.php', array('cards' => $cards));
+			$cat = $this->buildTemp('tmp.category.php', array('tag' => $tag, 'cardList' => $cardList));
 			$this->htmlOut("cat-".$tag, $cat);		
 		}
 	}
 	
-	
+	// function that outputs the main index page that calls the other output HTML pages via the jQuery
 	public function outputIndex() {
-		$tagList = "";
-		$allCardsList = "";
-		foreach ($this->tagCloud as $tag) {
-			$tagList .= "<li><p class='title' data-detail='cat-".$tag."'>".$tag."</p></li>";
-		}
-		
-		foreach ($this->allCards as $card) {
-			$tags = "";
-			foreach ($card->getTags() as $tag) { $tags .= $tag . ' / '; }
-			
-			$allCardsList .= "<li><p class='title' data-detail='".$card->getSlug()."'>".$card->getTitle()."</p>
-			<span class='date'>".$card->getDate()."</span><span class='tags'>".$tags."</span></li>
-			";
-		}
-		
-		include_once('templates/tmp.index.php'); // dependency
-		
+		$tagList = $this->buildTemp('tmp.taglist.php', array('tags' => $this->tagCloud));
+		$cardList = $this->buildTemp('tmp.cardlist.php', array('cards' => $this->allCards));
+		$index = $this->buildTemp('tmp.index.php', array('cardList' => $cardList, 'tagList' => $tagList));
 		$this->htmlOut("index", $index);
 		
 		echo "index output";
@@ -157,28 +157,11 @@ class CardCatalog {
 	
 }
 
-
-
-
-
-function indexTemplate($all, $tags) {
-	//process arrays to build $allCardsList, $dateList, $tagList variables
-	
-	
-	
-	
-	//process to output $index as index.html
-
-
-}
-
-function tagTemplate($menus) {}
-
-
 $catalog = new CardCatalog();
 $catalog->outputCards();
 $catalog->outputCategories();
 $catalog->outputIndex();
+
 
 
 // /* CHECK MY WORK */

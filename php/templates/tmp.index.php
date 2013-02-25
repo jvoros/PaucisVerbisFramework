@@ -1,6 +1,4 @@
-<?php 
-
-$index = <<<EOF
+<? // requires array('cardList' => 'some HTML', 'tagList' => 'some HTML', 'dateList' => 'some HTML') ?>
 <!DOCTYPE html>
 <html>
 
@@ -48,7 +46,7 @@ $index = <<<EOF
 	<input class ="search" /><i class="icon-search icon-large"></i>
 	
 	<ul class="list navlist">
-		{$allCardsList}
+		<?= $cardList ?>
 	</ul>
 </div>
 </section>
@@ -74,7 +72,7 @@ $index = <<<EOF
 		<input class ="search" /><i class="icon-search icon-large"></i>
 		
 		<ul class="list navlist">
-			{$dateList}
+			<?= $dateList ?>
 	
 		</ul>
 	</div>
@@ -86,14 +84,10 @@ $index = <<<EOF
 		<input class ="search" /><i class="icon-search icon-large"></i>
 		
 		<ul class="list navlist">
-			{$tagList}	
+			<?= $tagList ?>	
 		</ul>
 	</div>
 </section>
 
 </body>
 </html>
-
-EOF;
-
-?>
