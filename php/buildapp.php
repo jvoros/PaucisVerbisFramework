@@ -4,7 +4,7 @@
 include_once("markdown.php");
 include_once("Spyc.php");
 
-// quick and dirty array echoing
+// quick and dirty array echoing, utility for testing
 function echo_array($input, $name = null) {
 	echo "<p><pre>";
 	echo $name . "<br />";
@@ -18,9 +18,6 @@ function echo_array($input, $name = null) {
 // class implementation of this whole business
 // uses Spyc and Markdown libraries, tightly coupled
 // consider updating to use dependency injection 
-
-
-	
 
 class Card {
 	
@@ -58,6 +55,9 @@ class Card {
 
 }
 
+// this class turns the markdown files into the necessary pieces and constructs the static HTML
+// this is where the action is
+
 class CardCatalog {
 	
 	// constants for file paths
@@ -70,7 +70,13 @@ class CardCatalog {
 	private $tagCloud;
 	private $tagMenus;
 	
-	public function __construct() { $this->buildDecks(); }
+	public function __construct() { 
+		$this->buildDecks(); 
+		$this->outputCards();
+		$this->outputCategories();
+		$this->outputIndex();
+		echo "Static site built successfully.";
+	}
 	
 	// BUILD THE DECKS //
 	
@@ -92,7 +98,6 @@ class CardCatalog {
 		
 		foreach ($scan_dir as $filename) {
 			$card = $this->makeCard($filename);
-			
 			// add to appropriate arrays aka decks 
 			$this->allCards[] = $card;
 			// add tags from each card to tagMenu, adds to existing tag array if exists, otherwise makes a new one
@@ -144,10 +149,11 @@ class CardCatalog {
 		$tagList = $this->buildTemp('tmp.taglist.php', array('tags' => $this->tagCloud));
 		$cardList = $this->buildTemp('tmp.cardlist.php', array('cards' => $this->allCards));
 		$index = $this->buildTemp('tmp.index.php', array('cardList' => $cardList, 'tagList' => $tagList));
-		$this->htmlOut("index", $index);
-		
-		echo "index output";
-		
+		$this->htmlOut("index", $index);		
+	}
+	
+	public function build() {
+
 	}
 	
 	// array getters
@@ -158,85 +164,3 @@ class CardCatalog {
 }
 
 $catalog = new CardCatalog();
-$catalog->outputCards();
-$catalog->outputCategories();
-$catalog->outputIndex();
-
-
-
-// /* CHECK MY WORK */
-// 
-// foreach (array($catalog->getAllCards(), $catalog->getTagMenus(), $catalog->getTagCloud()) as $a) {
-// 	echo_array($a);
-// }
-
-// /////////////////////////////////////////////////////////////
-// /* PROCEDURAL IMPLEMENTATION */
-// 
-// // some constants
-// define("INPUTDIR", "../md/");
-// define("OUTPUTDIR", "../static/");
-// 
-// /* FUNCTIONS */
-// // quick and dirty array echoing
-// function echo_array($input, $name = null) {
-// 	echo "<p><pre>";
-// 	echo $name . "<br />";
-// 	echo print_r($input);
-// 	echo "</pre></p>";
-// }
-// 
-// // saves the html to OUTPUTDIR with the slug name
-// function htmlOut($slug, $html) {
-// 	$savepath = OUTPUTDIR . $slug . ".html";
-// 	$handle = fopen($savepath, 'w');
-//  	$appenddiv = "<div id='md'><h1>build with procedural final 2</h1>{$html}</div>";
-//  	fwrite($handle, $appenddiv);
-//  	fclose($handle);
-// }
-//  
-// // opens file from INPUTDIR 
-// // splits the markdown file, saves the html with slug name
-// // returns the header as array
-// function processMD($filename) {
-//  	$openpath = INPUTDIR . $filename;
-//  	$file = explode("+++++", file_get_contents($openpath));
-//  	$yaml = Spyc::YAMLLoad($file[0]);
-//  	$html = Markdown($file[1]);
-//  	
-//  	htmlOut($yaml['slug'], $html);
-//  	
-//  	return $yaml; // the equivalent of the card object
-// }
-// 
-// // takes a directory and builds the necessary arrays
-// function buildDecks($dir) {
-// 	// open directory
-// 	// only use files that match *.md filenames
-// 	$scanned_dir = preg_grep("/\w+\.md/i",scandir($dir));
-// 	
-// 	// process each file and add to appropriate arrays
-// 	foreach ($scanned_dir as $filename) {
-// 		$card = processMD($filename);
-// 		$all[] = $card;
-// 		// add tags from each ard to tagMenu, adds to existing tag array if exists, otherwise makes a new one
-// 		foreach($card['tags'] as $tag) { $menus[$tag][] = $card; }
-// 	}
-// 	
-// 	// generates the tag cloud
-// 	foreach($menus as $k => $v) { $cloud[] = $k; }
-// 	
-// 	return array('all' => $all, 'menus' => $menus, 'cloud' => $cloud, 'scan' => $scanned_dir);
-// }
-// 
-// /* ACTUALLY DO IT! */
-// 
-// // build the decks
-// $build = buildDecks(INPUTDIR);
-// 
-// /* CHECK MY WORK */
-//  
-// foreach ($build as $a) { echo_array($a); }
-//
-
-?>
